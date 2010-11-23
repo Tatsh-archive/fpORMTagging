@@ -18,8 +18,7 @@
  *
  * Add linking table(s) to a tags table (see above tag_related_table for an example).
  *
- * To initialize, call fpORMTagging::configure() in your init file on whichever tagging class you wish.
- * Then you can gatherRelated() or gatherRelatedRandom() on an fActiveRecord or fRecordSet of tags, or any fActiveRecord related to tags
+ * To initialize, call fpORMTagging::configure() in your init file on whichever tagging class you wish
  *
  * @copyright  2010, iMarc <info@imarc.net>
  * @author     Craig Ruks [cr] <craigruk@imarc.net>
@@ -27,8 +26,12 @@
  *
  * @package    Flourish Plugins
  *
- * @version    2.0
- * @changes    2.0.0     Methods now abstracted to the fActiveRecord or fRecordSet level of a related record or tag(s).
+ * @version    2.1.2
+ * @changes    2.1.2     Fixed another bug with garbage collecting tags that are no longer used [wb, 2010-10-08]
+ * @changes    2.1.1     Fixed a fatal error when garbage collecting tags, fixed reflected method signatures [wb, 2010-10-06]
+ * @changes    2.1.0     Added the fRecordSet method compileTags() [wb, 2010-09-29]
+ * @changes    2.0.1     Fixed some strict error notices, updated class to use fUTF8 [wb, 2010-09-22]
+ * @changes    2.0.0     Methods now abstracted to the fActiveRecord or fRecordSet level of a related record or tag(s). [cr, 2010-09-17]
  * @changes    1.0.0     The initial implementation [cr, 2010-08-13]
  */
 class fpORMTagging 
@@ -165,6 +168,11 @@ class fpORMTagging
 			__CLASS__ . '::gatherForRandomRecordSet'
 		);
 		
+		fORM::registerRecordSetMethod(
+			'compileTags',
+			__CLASS__ . '::compileTags'
+		);
+		
 		fORM::registerReflectCallback(
 			$class,
 			__CLASS__ . '::reflectGatherRelated'
@@ -241,7 +249,7 @@ class fpORMTagging
 		$tag_schema = fORMSchema::retrieve($tag_class);
 		$tag_column = self::$configured_columns[$tag_class];
 		
-		if ($tags instanceOf fRecordSet) {
+		if ($tags instanceof fRecordSet) {
 			$tags = $tags->getRecords();
 		}
 		
@@ -314,6 +322,28 @@ class fpORMTagging
 	
 	
 	/**
+	 * Builds a record set of the unique tags associated to the records in the set
+	 * 
+	 * @internal
+	 * 
+	 * @param  fRecordSet $record_set   The fRecordSet instance
+	 * @param  string     $class        The class of the records
+	 * @param  array      &$records     The fActiveRecord objects
+	 * @param  string     $method_name  The name of the method that was called
+	 * @param  array      $parameters   The parameters passed to the method
+	 * @return fRecordSet  A set of tags associated with the record
+	 */
+	static public function compileTags($object, $class, &$records, $method_name, $parameters)
+	{
+		$tags  = fRecordSet::buildFromArray('Tag', array());
+		foreach ($object as $record) {
+			$tags = $tags->merge($record->buildTags());
+		}
+		return $tags->unique();
+	}
+	
+	
+	/**
 	 * Gather a record set of related records for either a tag or a record
 	 * 
 	 * @internal
@@ -358,13 +388,14 @@ class fpORMTagging
 	 * 
 	 * @internal
 	 * 
-	 * @param  fRecordSet $record_set  The fRecordSet instance
-	 * @param  string     $class       The class of the records
-	 * @param  array      &$records    The fActiveRecord objects
-	 * @param  integer    &$pointer    The current iteration pointer
+	 * @param  fRecordSet $record_set   The fRecordSet instance
+	 * @param  string     $class        The class of the records
+	 * @param  array      &$records     The fActiveRecord objects
+	 * @param  string     $method_name  The name of the method that was called
+	 * @param  array      $parameters   The parameters passed to the method
 	 * @return fRecordSet  A set of related records
 	 */
-	static public function gatherForRecordSet($object, $class, &$records, &$pointer, $parameters)
+	static public function gatherForRecordSet($object, $class, &$records, $method_name, $parameters)
 	{
 		$limit          = (isset($parameters[0])) ? $parameters[0] : NULL;
 		$classes        = (isset($parameters[1])) ? $parameters[1] : array();
@@ -390,13 +421,14 @@ class fpORMTagging
 	 * 
 	 * @internal
 	 * 
-	 * @param  fRecordSet $record_set  The fRecordSet instance
-	 * @param  string     $class       The class of the records
-	 * @param  array      &$records    The fActiveRecord objects
-	 * @param  integer    &$pointer    The current iteration pointer
+	 * @param  fRecordSet $record_set   The fRecordSet instance
+	 * @param  string     $class        The class of the records
+	 * @param  array      &$records     The fActiveRecord objects
+	 * @param  string     $method_name  The name of the method that was called
+	 * @param  array      $parameters   The parameters passed to the method
 	 * @return fRecordSet  A set of related records
 	 */
-	static public function gatherForRandomRecordSet($object, $class, &$records, &$pointer, $parameters)
+	static public function gatherForRandomRecordSet($object, $class, &$records, $method_name, $parameters)
 	{
 		$limit          = (isset($parameters[0])) ? $parameters[0] : NULL;
 		$classes        = (isset($parameters[1])) ? $parameters[1] : array();
@@ -469,8 +501,8 @@ class fpORMTagging
 			)
 		);
 		$tags = array_merge(array_filter($tags));
-		$tags = array_map(fHTML::decode, $tags);
-		$tags = array_map(strtolower, $tags);
+		$tags = array_map(array('fHTML', 'decode'), $tags);
+		$tags = array_map(array('fUTF8', 'lower'), $tags);
 		
 		// insert new tags
 		foreach ($tags as $tag) {
@@ -490,8 +522,8 @@ class fpORMTagging
 				continue;
 			}
 			
-			if (self::gatherRecords($tag_class, $old_tag->$get_tag_method(), NULL)->count() == 1) {
-				$old_tag->delete();
+			if ($old_tag->gatherRelated()->count() == 1) {
+				$old_tag->delete(TRUE);
 			}
 		}
 		
@@ -521,11 +553,11 @@ class fpORMTagging
 			$signature .= " * @param integer $limit           Number of records to return \n";
 			$signature .= " * @param array   $classes         An associative array of classes to return records for, where the key is the class and the value is the sorting method (it is recommended not to mix data types for sorting) \n";
 			$signature .= " * @param string  $sort_direction  Sort order direction \n";
-			$signature .= " * @param mixed   $tag_class       The tag class to pull from, defaults to 'Tag' \n";
+			$signature .= " * @param mixed   $tag_class       The tag class to pull from - if only one is defined, will default to that\n";
 			$signature .= " * @return array\n";
 			$signature .= " */\n";
 		}
-		$signature .= 'public function gatherRelated()';
+		$signature .= 'public function gatherRelated($limit=NULL, $classes=array(), $sort_direction="asc", $tag_class=NULL)';
 		
 		$signatures['gatherRelated'] = $signature;
 	}
@@ -548,13 +580,13 @@ class fpORMTagging
 			$signature .= "/**\n";
 			$signature .= " * Gather up records related to tag(s) in a random order\n";
 			$signature .= " * \n";
-			$signature .= " * @param integer $limit           Number of records to return \n";
-			$signature .= " * @param array   $classes         An optional array of classes to return records for \n";
-			$signature .= " * @param mixed   $tag_class       The tag class to pull from, defaults to 'Tag' \n";
+			$signature .= " * @param integer $limit           Number of records to return\n";
+			$signature .= " * @param array   $classes         An optional array of classes to return records for\n";
+			$signature .= " * @param mixed   $tag_class       The tag class to pull from - if only one is defined, will default to that\n";
 			$signature .= " * @return array\n";
 			$signature .= " */\n";
 		}
-		$signature .= 'public function gatherRelatedRandom()';
+		$signature .= 'public function gatherRelatedRandom($limit=NULL, $classes=array(), $tag_class=NULL)';
 		
 		$signatures['gatherRelatedRandom'] = $signature;
 	}
@@ -572,7 +604,7 @@ class fpORMTagging
 	 * @param  array         &$parameters           The parameteres passed to the method
 	 * @return void
 	 */
-	static public function setTag($object, &$values, &$old_values, &$related_records, &$cache, $method_name, &$parameters)
+	static public function setTag($object, &$values, &$old_values, &$related_records, &$cache, $method_name, $parameters)
 	{
 		$class  = get_class($object);
 		$column = self::$configured_columns[$class];
