@@ -20,13 +20,15 @@
  *
  * To initialize, call fpORMTagging::configure() in your init file on whichever tagging class you wish
  *
- * @copyright  2010, iMarc <info@imarc.net>
+ * @copyright  2010-2011, iMarc <info@imarc.net>
  * @author     Craig Ruks [cr] <craigruk@imarc.net>
  * @author     Will Bond [wb] <will@imarc.net>
+ * @author     Nick Page [np] <page@imarc.net>
  *
  * @package    Flourish Plugins
  *
- * @version    2.1.2
+ * @version    2.1.3
+ * @changes    2.1.3     Fixed bug gathering random related records [np, 2011-06-09]
  * @changes    2.1.2     Fixed another bug with garbage collecting tags that are no longer used [wb, 2010-10-08]
  * @changes    2.1.1     Fixed a fatal error when garbage collecting tags, fixed reflected method signatures [wb, 2010-10-06]
  * @changes    2.1.0     Added the fRecordSet method compileTags() [wb, 2010-09-29]
@@ -289,8 +291,12 @@ class fpORMTagging
 		$where_conditions = array($tag_table . '.' . $tag_column . '=' => $tags);
 		foreach ($classes as $i => $class) {
 			// limit + 1 because object may reduce final size by 1
-			$record_set = fRecordSet::build($class, $where_conditions, array($columns[$i] => $sort_direction), ($limit) ? $limit + 1 : NULL);
-			
+			$record_set = fRecordSet::build(
+				$class, 
+				$where_conditions, 
+				$random ? array('random()' => 'asc') : array($columns[$i] => $sort_direction), 
+				$limit ? $limit + 1 : NULL
+			);
 			$set = $set->merge($record_set);
 		}
 		
@@ -648,7 +654,7 @@ class fpORMTagging
 
 
 /**
- * Copyright (c) 2010 iMarc LLC <info@imarc.net>
+ * Copyright (c) 2010-2011 iMarc LLC <info@imarc.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
