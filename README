@@ -1,0 +1,19 @@
+Flourish ORM plugin for tagging
+
+Requires:
+
+CREATE TABLE tags (
+  tag VARCHAR(255) PRIMARY KEY
+);
+
+CREATE TABLE tags_related_table (
+  related_table_id INTEGER NOT NULL references related_table(related_table_id) ON DELETE CASCADE,
+  tag VARCHAR(255) NOT NULL references tags(tag) ON DELETE RESTRICT ON UPDATE CASCADE,
+  PRIMARY KEY (tag, related_table_id)
+);
+
+Usage:
+
+Add linking table(s) to a tags table (see above tag_related_table for an example).
+
+To initialize, call fpORMTagging::configure() in your init file on whichever tagging class you wish
