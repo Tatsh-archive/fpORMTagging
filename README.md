@@ -20,7 +20,16 @@ CREATE TABLE tags_related_table (
 
 Add linking table(s) to a tags table (see above tag_related_table for an example).
 
-To initialize, call ```fpORMTagging::configure()``` in your init file on whichever tagging class you wish
+To initialize, call ```fpORMTagging::configure()``` in your init file on whichever tagging class you wish.
+
+## Installation on Gentoo
+
+As root:
+
+```bash
+layman -o http://tatsh.github.com/tatsh-overlay/layman.xml -a tatsh-overlay
+emerge --ask --verbose fORMTagging
+```
 
 ## Example: Tags to blog posts
 
