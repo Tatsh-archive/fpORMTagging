@@ -87,8 +87,8 @@ class BlogPostTag extends fActiveRecord {
   <?php foreach ($tags as $tag): ?>
     <?php $term = $tag->encodeTag(); ?>
     <?php // format for name is underscore_related_table_name::foreign_column_name[] ?>
-    <input id="edit-tag-<?php print $tag->encodeTag(); ?>" type="checkbox" name="blog_post_tags::tag[]" value="<?php print $tag->encodeTag(); ?>">
-    <label for="edit-tag-<?php print $tag->encodeTag(); ?>"><?php print $tag->
+    <input id="edit-tag-<?php print $term; ?>" type="checkbox" name="blog_post_tags::tag[]" value="<?php print $term; ?>">
+    <label for="edit-tag-<?php print $term; ?>"><?php print $term; ?></label>
   <?php endforeach; ?>
   <input type="submit" name="action" value="<?php print fHTML::encode('Create New Blog Post'); ?>">
 </form>
