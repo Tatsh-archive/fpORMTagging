@@ -1,6 +1,6 @@
 # Flourish ORM plugin for tagging
 
-## Requires:
+## Requires
 
 ```sql
 CREATE TABLE tags (
@@ -16,7 +16,7 @@ CREATE TABLE tags_related_table (
 );
 ```
 
-## Usage:
+## Usage
 
 Add linking table(s) to a tags table (see above tag_related_table for an example).
 
