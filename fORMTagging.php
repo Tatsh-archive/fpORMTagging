@@ -97,7 +97,7 @@ class fORMTagging
 	 * @param array  $preset_tags  Any preset tags that cannot be deleted
 	 * @return void
 	 */
-	static public function configure($class, $column, $related_orderings, $preset_tags=array())
+	static public function configure($class, $column, $related_orderings = array(), $preset_tags=array())
 	{
 		$class         = fORM::getClass($class);
 		$table         = fORM::tablize($class);
