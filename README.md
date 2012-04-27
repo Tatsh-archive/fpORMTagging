@@ -57,6 +57,7 @@ class BlogPost extends fActiveRecord {
   protected function configure() {    
     fORMDate::configureDateCreatedColumn($this, 'date_created');
     fORMDate::configureDateUpdatedColumn($this, 'date_updated');
+    fORMDate::configureTimezoneColumn($this, 'timezone');
   }
 }
 
@@ -72,7 +73,8 @@ class BlogPostTag extends fActiveRecord {
 ```php
 <?php // Tags is fRecordSet ?>
 <form method="post" action="/blog-post">
-  <?php // The form ?>
+  <input type="text" name="title" value="<?php print fRequest::encode('title', 'string', ''); ?>">
+  <textarea name="content"></textarea>
   <?php foreach ($tags as $tag): ?>
     <?php // format for name is underscore_related_table_name::foreign_column_name[] ?>
     <input type="checkbox" name="blog_post_tags::tag[]" value="<?php print $tag->encodeTag(); ?>">
