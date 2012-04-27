@@ -20,14 +20,16 @@
  *
  * To initialize, call fpORMTagging::configure() in your init file on whichever tagging class you wish
  *
- * @copyright  2010-2011, iMarc <info@imarc.net>
+ * @copyright  Copyright (c) 2010-2012 iMarc, others
  * @author     Craig Ruks [cr] <craigruk@imarc.net>
  * @author     Will Bond [wb] <will@imarc.net>
  * @author     Nick Page [np] <page@imarc.net>
+ * @author     Andrew Udvare [au] <andrew@bne1.com>
  *
  * @package    Flourish
  *
- * @version    2.1.3
+ * @version    2.1.4
+ * @changes    2.1.4     Allow $related_orderings to be optional [au, 2012-04-26]
  * @changes    2.1.3     Fixed bug gathering random related records [np, 2011-06-09]
  * @changes    2.1.2     Fixed another bug with garbage collecting tags that are no longer used [wb, 2010-10-08]
  * @changes    2.1.1     Fixed a fatal error when garbage collecting tags, fixed reflected method signatures [wb, 2010-10-06]
