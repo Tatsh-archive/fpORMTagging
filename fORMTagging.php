@@ -25,7 +25,7 @@
  * @author     Will Bond [wb] <will@imarc.net>
  * @author     Nick Page [np] <page@imarc.net>
  *
- * @package    Flourish Plugins
+ * @package    Flourish
  *
  * @version    2.1.3
  * @changes    2.1.3     Fixed bug gathering random related records [np, 2011-06-09]
@@ -36,7 +36,7 @@
  * @changes    2.0.0     Methods now abstracted to the fActiveRecord or fRecordSet level of a related record or tag(s). [cr, 2010-09-17]
  * @changes    1.0.0     The initial implementation [cr, 2010-08-13]
  */
-class fpORMTagging 
+class fORMTagging 
 {
 	/**
 	 * An associative array to cache the tag and its associated classes to
